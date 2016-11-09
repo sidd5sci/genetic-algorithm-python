@@ -1,0 +1,283 @@
+
+'''
+Name : path finder using genetic algorith
+language: Python 2.7
+Developer :siddhartha singh
+contect  :http://www.learn-kevin.blogspot.com
+Licence: GNU genral public licence.
+'''
+
+from Tkinter import *
+import random,time
+import math
+
+
+PI = 3.14159
+#======================================
+Population = []
+initialPopulation = 10
+genration = 0
+MutationRate = 10
+#======================================
+class vector:
+    
+    def __init__(self):
+        
+        self.direction = 0.0
+        self.magnitude = 0.0
+        
+    def copyVector(self,drct,mag,angletype):
+
+        if(angletype == 'R'):
+            self.direction = drct
+        elif(angletype == 'D'):
+            self.direction = (PI/180)*drct
+        self.magnitude = mag
+        
+    def getDirection(self):
+        return self.direction
+    
+    def getMagnitude(self):
+        return self.magnitude
+
+   
+class vertex:
+    def __init__(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
+        positionVector = vector()
+    def addVertex(self,X,Y,Z):
+        self.x = X
+        self.y = Y
+        self.z = Z
+#==============================        
+dest = vertex()
+dest.addVertex(500,340,0) # create a destination point
+#==============================              
+class population:
+
+      def __init__(self):
+          self.dna = []
+          self.fitness = 0
+          self.pos = vertex()
+          self.color = "#4c7cfc"
+      def CreateRandomPopulation(self):#this shold create each time differently
+            
+          self.pos.addVertex(50,200,0)
+          self.fitness = 0
+          tempx = self.pos.x
+          tempy = self.pos.y
+          x = 0.0
+          y = 0.0
+          for i in range(0,60):
+              v = vector()
+              v.copyVector(random.uniform(0,360),20,"D")#create a random vector
+              time.sleep(0.1)
+              # copying the value of temp location for restore into x,y
+              x = tempx
+              y = tempy
+              
+              tempx += v.magnitude*math.cos(v.direction)
+              tempy += v.magnitude*math.sin(v.direction)
+              if tempx < 30 or tempx > 400 or tempy < 30 or tempy > 400 :
+                    #print("Collision :",tempx," | " ,tempy)
+                    tempx = x#restore
+                    tempy = y#restore
+              else:
+                    self.dna.append(v)
+                    #arrow = canvas.create_line(x,y,tempx,tempy,fill="#5500ff")
+                    #root.update()
+                    
+          
+      def ShowElementDNA(self):
+          v = vector()
+          print("DNA :")
+          for i in range(0,len(self.dna)):
+              v = self.dna[i]
+              print(self.dna[i].direction ,"  | ",self.dna[i].magnitude)
+              
+      def CalFitness(self):
+          distance = 0.0
+          distance = math.sqrt((dest.x-self.pos.x)*(dest.x-self.pos.x) +(dest.y-self.pos.y)*(dest.y-self.pos.y))
+          #print("fitness :",distance)
+          #arrow = canvas.create_line(self.pos.x,self.pos.y,dest.x,dest.y,fill="green")
+          self.fitness = (1/(distance))
+          #self.fitness = (1-(distance/100))*100
+          #print("Relative fitness :",self.fitness,"%")
+          
+      def LiveThePopulation(self):
+          tempx = self.pos.x
+          tempy = self.pos.y
+          x,y = 0.0,0.0
+          color = "#5f6688"
+          for i in range(0,len(self.dna)):
+              #canvas.delete(ALL)
+              tempx = self.pos.x
+              tempy = self.pos.y
+              self.pos.x += self.dna[i].magnitude*math.cos(self.dna[i].direction)
+              self.pos.y += self.dna[i].magnitude*math.sin(self.dna[i].direction)      
+              self.DrawPopulation(tempx,tempy)
+              root.update()
+              #self.update()
+              
+              
+              
+              #print(tempx," | ",tempy,":::",self.pos.x," | ",self.pos.y)
+
+            
+      def DrawPopulation(self,tempx,tempy):
+          
+          deltax,deltay = 3 ,3
+          for i in range(0,initialPopulation):
+              self.arrow = canvas.create_line(tempx,tempy,self.pos.x,self.pos.y,fill=self.color)
+              self.arrowHead = canvas.create_oval(self.pos.x-deltax,self.pos.y-deltay,self.pos.x+deltax,self.pos.y+deltay,fill=self.color)
+      def update(self):  
+          canvas.delete(self.arrow)
+          canvas.delete(self.arrowHead)
+          root.update()
+          
+parent1 = population()
+parent2 = population()
+
+#=========================================
+#  Defination of functions
+#=========================================
+
+def CreateInitialPopulation():
+    global Population
+    global initialPopulation
+    for i in range(0,initialPopulation):
+        p = population()
+        p.CreateRandomPopulation()
+        Population.append(p)
+        
+
+def Genration():
+    global genration
+    global Population
+    global initialPopulation
+    genration += 1
+    
+    for i in range(0,initialPopulation):
+        Population[i].LiveThePopulation()
+      
+         
+def ShowFitness():
+    global Population
+    global initialPopulation
+    
+    for i in range(0,initialPopulation):
+        Population[i].CalFitness()
+        
+def FindBestFitesest():
+    global parent1
+    global parent2
+    global Population
+    global initialPopulation
+    parent1 = parent2 = Population[0]
+    for i in range(1,initialPopulation):
+        #print(parent1.fitness," | ",parent2.fitness," || ",Population[i].fitness)
+        if parent1.fitness < Population[i].fitness:
+            parent2 = parent1
+            parent1 = Population[i]
+        elif parent2.fitness < Population[i].fitness:
+             parent2 = Population[i]
+def CrossOver():
+    global parent1
+    global parent2
+    child = population()
+    for i in range(0,len(parent1.dna)):
+        if i < math.floor(len(parent1.dna)/2):
+           child.dna.append(parent1.dna[i])
+        else:
+           child.dna.append(parent2.dna[i])
+    #here the mutation is take place
+    v = vector()
+    v.copyVector(random.random(),10,"R")
+    time.sleep(0.1)
+    child.dna[math.floor(random.uniform(0,len(parent1.dna)))] = v
+    time.sleep(0.1)
+    return child
+def CrossOver1():#choose fittest with one single gene changed
+    global parent1
+    child = population()
+    child.dna = parent1.dna
+    v = vector()
+    v.copyVector(random.uniform(0,360),10,"D")
+    time.sleep(0.1)
+    child.dna[math.floor(random.uniform(0,len(parent1.dna)))] = v
+    time.sleep(0.1)
+    child.pos.addVertex(50,200,0)
+    child.fitness = 0.0
+    return child
+def CrossOver2():
+    global parent1
+    global MutationRate
+    child = population()
+    for i in range(0,int(math.floor(len(parent1.dna)/2))):
+        child.dna.append(parent1.dna[i])
+    for i in range(0,int(math.floor(len(parent2.dna)/2))):
+        child.dna.append(parent2.dna[i])
+    if random.uniform(0,100) < MutationRate:
+        v = vector()
+        v.copyVector(random.uniform(0,360),10,"D")
+        time.sleep(0.1)
+        child.dna[int(math.floor(random.uniform(0,len(child.dna))))] = v
+    time.sleep(0.1)
+
+    child.pos.addVertex(50,200,0)
+    child.fitness = 0.0
+    return child
+def init_env():
+    ball = canvas.create_oval(dest.x-3,dest.y-3,dest.x+3,dest.y+3,fill="red")#Draw the destination point
+    ScreenText_Genration = canvas.create_text(40,10,text="genration :")
+    ScreenText_AvgFitness = canvas.create_text(40,30,text="Avg fitness :")
+    ScreenText_Mutation = canvas.create_text(40,50,text="Mutation :")
+    ScreenText_Crossover = canvas.create_text(40,70,text="Crossover :")
+    ScreenText_Goal = canvas.create_text(40,90,text="Goal :")
+    ScreenText_genration1 = canvas.create_text(100,10,text=genration)
+    ScreenText_AvgFitness1 = canvas.create_text(170,30,text=parent1.fitness)
+    ScreenText_Mutation1 = canvas.create_text(130,50,text=MutationRate)
+    root.update()
+    
+def Start():
+    
+    CreateInitialPopulation()
+    print("==================Start======================")
+    global parent1
+    global genration 
+    while True:
+          init_env()
+          Genration()
+          ShowFitness()
+          FindBestFitesest()
+          #print("fitness :",parent1.fitness,"%")
+          for i in range(0,10):
+              Population[i] = CrossOver2()
+          if(parent1.fitness <= 0.2) :
+                canvas.delete(ALL)
+          else:
+                 break
+root = Tk()
+root.title("Path finder")
+canvas = Canvas(root,width=900,height=400)
+
+    
+
+canvas.pack()
+
+print("Loding essentials ....\n this may take sevral minutes")
+Start()
+
+init_env()
+#p = population()
+#p.CreateRandomPopulation()
+#p.LiveThePopulation()
+#p.CalFitness()
+#init_env()
+
+
+
+root.mainloop()
+
