@@ -73,7 +73,7 @@ class population:
           for i in range(0,60):
               v = vector()
               v.copyVector(random.uniform(0,360),20,"D")#create a random vector
-              time.sleep(0.1)
+              
               # copying the value of temp location for restore into x,y
               x = tempx
               y = tempy
@@ -195,9 +195,9 @@ def CrossOver():
     #here the mutation is take place
     v = vector()
     v.copyVector(random.random(),10,"R")
-    time.sleep(0.1)
+    
     child.dna[math.floor(random.uniform(0,len(parent1.dna)))] = v
-    time.sleep(0.1)
+    
     return child
 def CrossOver1():#choose fittest with one single gene changed
     global parent1
@@ -205,9 +205,9 @@ def CrossOver1():#choose fittest with one single gene changed
     child.dna = parent1.dna
     v = vector()
     v.copyVector(random.uniform(0,360),10,"D")
-    time.sleep(0.1)
+    
     child.dna[math.floor(random.uniform(0,len(parent1.dna)))] = v
-    time.sleep(0.1)
+    
     child.pos.addVertex(50,200,0)
     child.fitness = 0.0
     return child
@@ -222,9 +222,9 @@ def CrossOver2():
     if random.uniform(0,100) < MutationRate:
         v = vector()
         v.copyVector(random.uniform(0,360),10,"D")
-        time.sleep(0.1)
+        
         child.dna[int(math.floor(random.uniform(0,len(child.dna))))] = v
-    time.sleep(0.1)
+    
 
     child.pos.addVertex(50,200,0)
     child.fitness = 0.0
